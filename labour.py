@@ -233,10 +233,10 @@ labour_tab = dcc.Tab(label='Labour Networks', children = [
                         We can estimate what areas and jobs are most effected by COVID.
                         """
                     )),
-                    html.Div([
-                        html.Img(src='data:image/png;base64,{}'.format(base64.b64encode(
-                            open('assets/April Total Employment Losses.png', 'rb').read()).decode()), style={'width': '100%'})
-                    ])
+                    # html.Div([
+                    #     html.Img(src='data:image/png;base64,{}'.format(base64.b64encode(
+                    #         open('assets/April Total Employment Losses.png', 'rb').read()).decode()), style={'width': '100%'})
+                    # ])
                 ]
             ),
             html.Div(
@@ -252,10 +252,10 @@ labour_tab = dcc.Tab(label='Labour Networks', children = [
                         $RCA\_{j, s} = \\frac{E\_{j,s} / \sum\_{s \in State} E\_{j,s} } { \sum\_{j \in Jobs } E\_{j,s} / \sum\_{j \in Jobs} \sum\_{s \in States} E\_{j,s} }$
                         """
                     )),
-                    html.Div([
-                        html.Img(src='data:image/png;base64,{}'.format(base64.b64encode(
-                            open('assets/RCA_States_Overlap.png', 'rb').read()).decode()), style={'width': '100%'})
-                    ])
+                    # html.Div([
+                    #     html.Img(src='data:image/png;base64,{}'.format(base64.b64encode(
+                    #         open('assets/RCA_States_Overlap.png', 'rb').read()).decode()), style={'width': '100%'})
+                    # ])
                     
                 ]
             )
