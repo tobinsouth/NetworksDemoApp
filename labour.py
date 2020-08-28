@@ -1,6 +1,5 @@
 import pandas as pd, igraph as ig, numpy as np
 import plotly.graph_objs as go
-import matplotlib.cm as cm
 import plotly
 import itertools
 
