@@ -8,6 +8,10 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
+import plotly.express as px
+import base64
+
+
 from textwrap import dedent as d
 
 
@@ -53,7 +57,7 @@ class Spotify():
 
 		figure = {
 			"data": [edge_trace, node_trace] ,
-			"layout": go.Layout(title='Spotify Visualization', showlegend=False, hovermode='closest',
+			"layout": go.Layout(title='Spotify Most Central Core', showlegend=False, hovermode='closest',
 								margin={'b': 40, 'l': 40, 'r': 40, 't': 40},
 								xaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
 								yaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
@@ -64,21 +68,89 @@ class Spotify():
 
 
 
+centrality_artists_results = pd.read_csv('data/centrality_artists_results.csv')
+
+grouped = centrality_artists_results.groupby('Eigenvector')
+first = grouped.get_group('First')
+second = grouped.get_group('Second')
+
+first_average = first.groupby('Genre').apply(
+    lambda x: x.groupby('Threshold')['Centraility'].mean()).reset_index().melt(id_vars = 'Genre', value_name='Centrality')
+
+second_average = second.groupby('Genre').apply(
+    lambda x: x.groupby('Threshold')['Centraility'].mean()).reset_index().melt(id_vars = 'Genre', value_name='Centrality')
+
+
+def plot_first_eigencentraility(threshold):
+	fig = px.line(first_average, x="Threshold", y="Centrality", 
+              title='First Eigenvector (Eigencentraility)', color='Genre',
+              labels = dict(Centrality = "Average Group Centrality",
+          					Threshold = "Popularity Threshold"))
+	choice = first_average.set_index('Threshold').loc[threshold].sort_values('Centrality').iloc[-1]
+	fig = fig.add_trace(
+	    go.Scatter(x = [threshold], y = [choice.Centrality], 
+	               marker = {'size':20},
+	               hovertext = ["Average Centrality of\nMost Central Group of\nArtists at threshold %d" % threshold], 
+	               showlegend = False)
+	)
+	return fig
+
+def plot_second_eigencentraility(threshold):
+	fig = px.line(second_average, x="Threshold", y="Centrality", 
+              title='Second Eigenvector', color='Genre',
+              labels = dict(Centrality = "Average Group Centrality",
+              				Threshold = "Popularity Threshold"))
+	choice = second_average.set_index('Threshold').loc[threshold].sort_values('Centrality').iloc[-1]
+	fig = fig.add_trace(
+	    go.Scatter(x = [threshold], y = [choice.Centrality], 
+	               marker = {'size':20},
+	               hovertext = ["Average Second Eigenvector Value\n of group at threshold %d" % threshold], 
+	               showlegend = False)
+	)
+	return fig
+
+
+
 spotify = Spotify()
 
 
 spotify_tab = dcc.Tab(label='Spotify Collaboration', children = [
 	html.Div(
         className="row",
+        children=[ dcc.Markdown(d("""
+        ## Popularity and Centrality in the Spotify Artist Collaboration Graph
+        #### Critical transitions in eigenvector centrality
+
+        Based on a paper that has recently been submitted for review 
+        (but is also [available as a pre-print ;)](https://arxiv.org/abs/2008.11428)), 
+        we create a network where nodes are musical artists and edges are collaborations or covers. 
+        This data is collected from Spotify using their API. 
+        In total the graph has 1,250,065 artists (a bit too big to show here). 
+        Each artist also has a popularity between 0 and 100, where 100 is the most streamed artist.
+
+        If we take the eigenvector centrality of the whole graph, 
+        the classical artists are the most important (central) in all of music.
+        However, if we only look at the *most popular* artists, the most central core is the rappers. 
+        While this is already surprising, the way in which this happens is the interesting maths. 
+        We see a critical transition between the centrality of the two groups, 
+        where the second eigenvector swaps in dominance to the first. 
+
+        Have a play with the popularity threshold and look at the most central artists!
+       """))
+        ]
+    ),
+	html.Div(
+        className="row",
         children=[
             ##############################################left side two input components
             html.Div(
-                className="two columns",
+                className="six columns",
                 children=[
                     dcc.Markdown(d("""
-                            **Popularity Threshold**
+                            ## Popularity Threshold
 
-                           	We take a subgraph using only the artists above this popularity.
+                           	We look a subgraph using only the artists above this popularity. 
+                           	We then calculate the centrality to produce these plots!
                             """)),
                     html.Div(
                         className="twelve columns",
@@ -89,25 +161,75 @@ spotify_tab = dcc.Tab(label='Spotify Collaboration', children = [
                                 max=69,
                                 step=1,
                                 value = 0,
-                                marks = dict(zip([0,30,46,47,69], ["0","30","","47","69"]))
-                                # {i: str(i) for i in [0,46,47,69]}
+                                marks = dict(zip([0,30,45,48,69], ["0","30","45","48","69"]))
                             ),
                             html.Br(),
                             html.Div(id = 'spotify_pop_threshold_output')
-                        ],
-                        style={'height': '300px'}
-                    )
+                        ]
+                    ),
+                    html.Div(className = 'twelve columns', style={'height': '50px'}),
+                    html.Div(
+		                className="twelve columns",
+		                children=[dcc.Graph(id="spotify-graph",
+		                                    figure=spotify.update_figure(0) )],
+		            ),
                 ]
             ),
 
             ############################################middle graph component
             html.Div(
-                className="eight columns",
-                children=[dcc.Graph(id="spotify-graph",
-                                    figure=spotify.update_figure(0))],
-            ),
+                className="six columns",
+                children=[
+		            html.Div(
+		                className="twelve columns",
+		                children=[dcc.Graph(id="spotify_first_eigenvector_graph",
+		                                    figure=plot_first_eigencentraility(0))],
+		            ),
+		             html.Div(
+		                className="twelve columns",
+		                children=[dcc.Graph(id="spotify_second_eigenvector_graph",
+		                                    figure=plot_second_eigencentraility(0))],
+		            ),
+                ]
+            )
         ]
+    ),
+    html.Div(className = 'row', style={'height': '50px'}),
+    html.Div(
+	    className="row",
+	    children=[ dcc.Markdown(d("""
+	    ## Social Group Centrality Model
+
+	    A random graph model is developed to help understand the nature of the critical transition.
+	   """))
+		]
+	),
+    html.Div(
+    	className = 'row', 
+    	children = [
+		       	html.Div(className= "four columns", children = [
+		       		html.Div(className='container', children = [
+				        html.Img(src='data:image/png;base64,{}'.format(base64.b64encode(
+				            open('assets/PopDegreeSuper.png', 'rb').read()).decode()), style={'width': '100%'}),
+				        html.Div(style = {'height':'20px'}),
+				        html.Div(children = ["Popularity and Degree in Spotify Data"])
+    			])]),
+		       	html.Div(className= "four columns", children = [
+		       		html.Div(className='container', children = [
+				        html.Img(src='data:image/png;base64,{}'.format(base64.b64encode(
+				            open('assets/leaders_vs_celebrities_threshold1.png', 'rb').read()).decode()), style={'width': '90%'}),
+				        html.Div(children = ["Initial Social Group Centrality Model"])
+    			])]),
+		       	html.Div(className= "four columns", children = [
+		       		html.Div(className='container', children = [
+				        html.Img(src='data:image/png;base64,{}'.format(base64.b64encode(
+				            open('assets/leaders_vs_celebrities_threshold2.png', 'rb').read()).decode()), style={'width': '90%'}),
+				        html.Div(children = ["Model After Popularity Threshold is Applied"])
+
+    			])])
+    	]
     )
+
 ])
 
 

@@ -8,7 +8,6 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
 from textwrap import dedent as d
-import copy
 import base64
 
 
@@ -31,7 +30,7 @@ class LabourNetwork():
 
         self.current_threshold = 0
         self.main_figure = self.get_labour_figure()
-        self.edge_trace = self.update_threshold(0.5)
+        self.edge_trace = self.update_threshold(0.3)
 
         self.current_color_choice = "louvain community"
         self.current_size_choice = 'None'
@@ -149,7 +148,7 @@ labour_tab = dcc.Tab(label='Labour Networks', children = [
         We remove edges that have very little similarity to construct the graph you see below.
 
         These skill similarity edges correlate with a persons ability to move from one job to another, 
-        and can provide interesting insights into the resilience and potential of the workforce.
+        and can provide interesting insights into the resilience and potential of the workforce.   
        """))
         ]
     ),
@@ -205,11 +204,11 @@ labour_tab = dcc.Tab(label='Labour Networks', children = [
                                 min=0.1,
                                 max=0.9,
                                 step=0.1,
-                                value = 0.5,
+                                value = 0.3,
                                 marks = {i / 10.0: str(i / 10.0) for i in range(0,10)}
                             )
                         ],
-                        style={'height': '300px'}
+                        # style={'height': '300px'}
                     ),
                 ]
             ),
@@ -220,6 +219,7 @@ labour_tab = dcc.Tab(label='Labour Networks', children = [
             ),
         ]
     ),
+    html.Div(style={'height': '50px'}),
     html.Div(
         className="row",
         children=[
@@ -228,15 +228,30 @@ labour_tab = dcc.Tab(label='Labour Networks', children = [
                 children=[
                     dcc.Markdown(d(
                         """
-                        **Unemployment Estimation**
+                        ## Detailed Resilience Estimation
 
-                        We can estimate what areas and jobs are most effected by COVID.
+                        Labour markets are like an ecosystem. 
+                        Strong interconnections between diverse occupations lead to economies that are more resilient to shocks.
+                        COVID-19 presented a major shock to economies around the world, 
+                        and we've been working to understand how the diversity of our labour markets has effected our states resilience.  
+
+
+                        In particular we can define the embeddedness, $e\_j^r$, of a job, $j$, in a region, 
+                        $r$ by the number and strength of connections to other jobs in a labour network like above.
+                        We regions labour market will look different, an each has an overall resilience value, $e\_{total}^r$, 
+                        which can define how interconnected the regions market is, 
+                        $e\_{total}^r = \sum\_j (e\_j^r)^2 / \sum\_{a,b \in \text{jobs}} A\_{a,b}$, for a network adjacency matrix $A$.
+
+
+                        These market insights, combined with a Bayesian approach to unemployment data,
+                        can help us understand the detailed risks faced by economies in the many regions of Australia.
+
                         """
                     )),
-                    # html.Div([
-                    #     html.Img(src='data:image/png;base64,{}'.format(base64.b64encode(
-                    #         open('assets/April Total Employment Losses.png', 'rb').read()).decode()), style={'width': '100%'})
-                    # ])
+                    html.Div([
+                        html.Img(src='data:image/png;base64,{}'.format(base64.b64encode(
+                            open('assets/April Total Employment Losses.png', 'rb').read()).decode()), style={'width': '100%'})
+                    ])
                 ]
             ),
             html.Div(
@@ -244,18 +259,29 @@ labour_tab = dcc.Tab(label='Labour Networks', children = [
                 children=[
                     dcc.Markdown(d(
                         """
-                        **State Complementarity**
+                        ## State Complementarity
 
-                        Australian States are projected onto the job networks using the *revealed comparative advantage* (RCA) of our job. 
+                        No two labour markets are exactly the same, and these difference create opportunities. 
+                        The rise of globalisation has shown the potential for collaborative growth, 
+                        but also the harms of exploitation and off-shoring. 
+                        The new potential for domestic interstate collaborations is an enormous opportunity. 
+                        But how best should our states collaborate?
+
+
+                        Australian States are projected onto the job networks using the *revealed comparative advantage* (RCA) of our jobs. 
                         The RCA measures the relative advantage or disadvantage of a certain state in employing these workers. 
-                        The characteristic occupations of each state are colored along with the edges connecting those occupations. 
+                        The characteristic occupations (those where we have an advantage) of each state are coloured along with the edges connecting those occupations. 
                         $RCA\_{j, s} = \\frac{E\_{j,s} / \sum\_{s \in State} E\_{j,s} } { \sum\_{j \in Jobs } E\_{j,s} / \sum\_{j \in Jobs} \sum\_{s \in States} E\_{j,s} }$
+
+
+                        Using this information we can identifies which states make good pairs, 
+                        and find where the opportunities for collaboration and complementarity are in our labour market.
                         """
                     )),
-                    # html.Div([
-                    #     html.Img(src='data:image/png;base64,{}'.format(base64.b64encode(
-                    #         open('assets/RCA_States_Overlap.png', 'rb').read()).decode()), style={'width': '100%'})
-                    # ])
+                    html.Div([
+                        html.Img(src='data:image/png;base64,{}'.format(base64.b64encode(
+                            open('assets/RCA_States_Overlap.png', 'rb').read()).decode()), style={'width': '100%'})
+                    ])
                     
                 ]
             )
@@ -268,19 +294,37 @@ color_choice_output_dict = {
     'louvain community': 
         dcc.Markdown(d(
             """
-            Cognitive Community
-            louvain community
+            Based on work by Science Advances by the team at MIT, 
+            we can see a natural separation of occupations be Cognitive skill dominated professions and 
+            Physical skill dominated professions. I strongly recommend readers to check out the paper 
+            ["Unpacking the polarization of workplace skills"](https://advances.sciencemag.org/content/4/7/eaao6030)
+            
+
+            In this simplified colouring for the Australian labour market, we use Louvain community detection to identify 
+            the physical and cognitive groupings. Not every occupation aligns perfectly - try to spot some that don't belong - 
+            it can tell you interesting things about the skill distributions of jobs.
             """
         )),
     'unemployment':
         dcc.Markdown(d(
             """
-            unemployment
+            Shown here is unemployment data in May of 2020. This data shows the impact of COVID-19 on our economy, 
+            especially on our retail and service sector. 
+
+
+            Combine this with the workforce size button below to begin to understand how the pandemic has effects us, 
+            and the road to economic recovery.
             """
         )),
 }
 
 size_choice_output_dict = {
     'None': "",
-    "total_pop":"Workforce Size"
+    "total_pop":
+        dcc.Markdown(d(
+            """
+            The size is proportional to the log of the total number of people employed in each occupation over the whole of Australia.
+            Hover over each occupation so see how popular it is!
+            """
+        )),
 }

@@ -13,7 +13,7 @@ def explain_make_network(n, p, style = 'Erdős–Rényi Random Graph', color = "
     if style == 'Erdős–Rényi Random Graph':
         G = ig.Graph.Erdos_Renyi(n, p)
     elif style == 'Barabási–Albert Random Graph':
-        G = ig.Graph.Barabasi(n, int(p*((n**2)/2 - n)))
+        G = ig.Graph.Barabasi(n, int(p*n))
 
     layout = np.array(G.layout_fruchterman_reingold().coords)
     G.vs["x"] = [f.item() for f in layout[:,0]]

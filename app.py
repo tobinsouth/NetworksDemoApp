@@ -34,12 +34,24 @@ app.title = "Tobin South - Stoneham Prize"
 
 app.layout = html.Div([
     #########################Title
-    html.Div([html.H1(" Network Graph")],
+    html.Div([html.H1("Networks are Everywhere")],
              className="row",
              style={'textAlign': "center"}),
+    html.Div(
+        className="row",
+        children=[ dcc.Markdown(d("""
+        Networks underpin many aspects of everyday life. 
+        From our social sphere and labour markets to ecosystem of nature and creativity, 
+        hidden networks can reveal much about how we connect and where each of us fit into the bigger picture.
+        Mathematics provides a powerful tool for modelling and analysing these networks.
+        In this app, we will see just a small explain of the kind of networks that we can obverse around us.
+        Click the tabs to find out more about the work Tobin has been doing during his MPhil.
+       """))
+        ]
+    ),
     dcc.Tabs([explain_tab, labour_tab, spotify_tab])
     
-])
+]) 
 
 server = app.server 
 
@@ -47,17 +59,29 @@ server = app.server
 # These callbacks are what will make everything interactive
 ######################################################################################################################################################################
 
-# @app.callback(
-#     dash.dependencies.Output('spotify-graph', 'figure'),
-#     [dash.dependencies.Input('spotify_pop_threshold', 'value')])
-# def update_main_spotify_output(spotify_pop_threshold):
-#     return spotify.update_figure(spotify_pop_threshold)
+@app.callback(
+    dash.dependencies.Output('spotify-graph', 'figure'),
+    [dash.dependencies.Input('spotify_pop_threshold', 'value')])
+def update_main_spotify_output(spotify_pop_threshold):
+    return spotify.update_figure(spotify_pop_threshold)
 
-# @app.callback(
-#     dash.dependencies.Output('spotify_pop_threshold_output', 'children'),
-#     [dash.dependencies.Input('spotify_pop_threshold', 'value')])
-# def update_main_spotify_pop_threshold_output(spotify_pop_threshold):
-#     return "You have selected a threshold of %d" % spotify_pop_threshold
+@app.callback(
+    dash.dependencies.Output('spotify_first_eigenvector_graph', 'figure'),
+    [dash.dependencies.Input('spotify_pop_threshold', 'value')])
+def update_first_eigenvector_graph(spotify_pop_threshold):
+    return plot_first_eigencentraility(spotify_pop_threshold)
+
+@app.callback(
+    dash.dependencies.Output('spotify_second_eigenvector_graph', 'figure'),
+    [dash.dependencies.Input('spotify_pop_threshold', 'value')])
+def update_second_eigenvector_graph(spotify_pop_threshold):
+    return plot_second_eigencentraility(spotify_pop_threshold)
+
+@app.callback(
+    dash.dependencies.Output('spotify_pop_threshold_output', 'children'),
+    [dash.dependencies.Input('spotify_pop_threshold', 'value')])
+def update_main_spotify_pop_threshold_output(spotify_pop_threshold):
+    return "You have selected a threshold of %d" % spotify_pop_threshold
 
 
 
