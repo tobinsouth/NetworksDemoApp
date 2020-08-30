@@ -1,18 +1,14 @@
 import pandas as pd, igraph as ig, numpy as np
-import plotly.graph_objs as go
-import matplotlib.cm as cm
-import plotly
-import itertools
 
-import dash
 import dash_core_components as dcc
 import dash_html_components as html
+from textwrap import dedent as d
+
 import plotly.graph_objs as go
 import plotly.express as px
-import base64
+import base64 # For rendering images
 
 
-from textwrap import dedent as d
 
 
 class Spotify():
@@ -49,7 +45,7 @@ class Spotify():
 
 		sizes =  np.array(G.vs['Popularity']) / 3
 
-		hovertext = ["Name: %s\nPopularity: %d\nFollowers: %d" % (artist, pop, followers) for artist, pop, followers in zip(G.vs['Artist'], G.vs['Popularity'], G.vs['Followers'])]
+		hovertext = ["Name: %s<br>Popularity: %d<br>Followers: %d" % (artist, pop, followers) for artist, pop, followers in zip(G.vs['Artist'], G.vs['Popularity'], G.vs['Followers'])]
 
 		node_trace = go.Scatter(x=G.vs['x'], y=G.vs['y'], hovertext=hovertext, text=[], mode='markers+text', textposition="bottom center", \
 								hoverinfo="text", marker={'size': sizes, 'color':G.vs['centrality'], 'cauto':True, 'colorscale':'Bluered',
@@ -109,11 +105,10 @@ def plot_second_eigencentraility(threshold):
 	)
 	return fig
 
-
-
 spotify = Spotify()
 
 
+# Define the tab html
 spotify_tab = dcc.Tab(label='Spotify Collaboration', children = [
 	html.Div(
         className="row",
@@ -200,7 +195,14 @@ spotify_tab = dcc.Tab(label='Spotify Collaboration', children = [
 	    children=[ dcc.Markdown(d("""
 	    ## Social Group Centrality Model
 
-	    A random graph model is developed to help understand the nature of the critical transition.
+	    In the paper we propose a random graph based model of social group centrality (SGC) 
+	    as a simplified way of capturing the dynamics of critical changes in centrality under thresholding. 
+	    The SGC model consists of three groups; “celebrities”, “community leaders” and “the masses.” 
+	    The masses are the largest group consisting of a randomly generated Barab́asi–Albert graph. 
+
+	    Using this simulated model, we help explain how the critical transition occurs between the most central group. 
+	    To find out more, please read the [paper](https://arxiv.org/abs/2008.11428) or ask me questions!
+
 	   """))
 		]
 	),

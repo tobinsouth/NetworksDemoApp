@@ -3,27 +3,14 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import plotly.graph_objs as go
-import json
-
-import pandas as pd, igraph as ig, numpy as np
 from textwrap import dedent as d
 
 
 from labour import *
 from spotify import *
-# from information_flow import *
 from explain import *
+# from information_flow import *
 
-######################################################################################################################################################################
-# To improve speed during console runtime, we're gonna do some extra work upfront. 
-######################################################################################################################################################################
-
-
-
-######################################################################################################################################################################
-# This is the setup of the actual dash html interface
-######################################################################################################################################################################
 
 # import the css template, and pass the css template into dash
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -32,6 +19,7 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets, external_sc
 app.title = "Tobin South - Stoneham Prize"
 
 
+# Setup the website layout.
 app.layout = html.Div([
     #########################Title
     html.Div([html.H1("Networks are Everywhere")],
@@ -50,15 +38,17 @@ app.layout = html.Div([
         ]
     ),
     dcc.Tabs([explain_tab, labour_tab, spotify_tab])
-    
+
 ]) 
 
+# This line is needed for webhosting
 server = app.server 
 
 ######################################################################################################################################################################
 # These callbacks are what will make everything interactive
 ######################################################################################################################################################################
 
+# Spotify Tab Callbacks
 @app.callback(
     dash.dependencies.Output('spotify-graph', 'figure'),
     [dash.dependencies.Input('spotify_pop_threshold', 'value')])
@@ -138,6 +128,7 @@ def update_explain_graph_type_output(explain_graph_type):
 
 
 
+
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server()
 

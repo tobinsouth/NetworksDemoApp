@@ -1,14 +1,12 @@
-import pandas as pd, igraph as ig, numpy as np
-import plotly.graph_objs as go
-import plotly
-import itertools
+import igraph as ig, numpy as np
 
-import dash
+import plotly
 import dash_core_components as dcc
 import dash_html_components as html
-import plotly.graph_objs as go
 from textwrap import dedent as d
-import base64
+import plotly.graph_objs as go
+import base64 # For rendering images
+
 
 
 def setup_edges(G):
@@ -30,7 +28,7 @@ class LabourNetwork():
 
         self.current_threshold = 0
         self.main_figure = self.get_labour_figure()
-        self.edge_trace = self.update_threshold(0.3)
+        self.edge_trace = self.update_threshold(0.2)
 
         self.current_color_choice = "louvain community"
         self.current_size_choice = 'None'
@@ -124,14 +122,8 @@ class LabourNetwork():
 
 labourNetwork = LabourNetwork()
 
-# styles: for right side hover/click component
-styles = {
-    'pre': {
-        'border': 'thin lightgrey solid',
-        'overflowX': 'scroll'
-    }
-}
 
+# Define the tab html
 labour_tab = dcc.Tab(label='Labour Networks', children = [
     html.Div(
         className="row",
@@ -201,10 +193,10 @@ labour_tab = dcc.Tab(label='Labour Networks', children = [
                         children=[
                             dcc.Slider(
                                 id='labour_edge_threshold',
-                                min=0.1,
-                                max=0.9,
+                                min=0,
+                                max=1,
                                 step=0.1,
-                                value = 0.3,
+                                value = 0.2,
                                 marks = {i / 10.0: str(i / 10.0) for i in range(0,10)}
                             )
                         ],
@@ -289,7 +281,7 @@ labour_tab = dcc.Tab(label='Labour Networks', children = [
     )
 ])
 
-
+# Save output dictionaries for callbacks to render
 color_choice_output_dict = {
     'louvain community': 
         dcc.Markdown(d(
